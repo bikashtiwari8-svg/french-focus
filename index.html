@@ -11,19 +11,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f7f3ea;
-    --card: #ffffff;
-    --ink: #1c2240;
-    --muted: #6b7088;
-    --line: #e6e0d2;
-    --blue: #1f2a5a;
-    --blue-soft: #e7eaf6;
-    --red: #c8343e;
-    --red-soft: #fbe7e8;
-    --green: #2f8f5b;
-    --green-soft: #e3f3ea;
-    --amber: #b7791f;
-    --amber-soft: #fbf0dc;
+    --bg: #f7f3ea; --card: #ffffff; --ink: #1c2240; --muted: #6b7088; --line: #e6e0d2;
+    --blue: #1f2a5a; --blue-soft: #e7eaf6; --red: #c8343e; --red-soft: #fbe7e8;
+    --green: #2f8f5b; --green-soft: #e3f3ea; --amber: #b7791f; --amber-soft: #fbf0dc;
     --shadow: 0 1px 2px rgba(28,34,64,.06), 0 6px 20px rgba(28,34,64,.06);
   }
   @media (prefers-color-scheme: dark) {
@@ -63,10 +53,12 @@
   video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: block; }
   .cam-off { position: absolute; inset: 0; display: grid; place-items: center; color: #b9bfdc; text-align: center; padding: 20px; font-size: 15px; }
   .badge { position: absolute; left: 12px; top: 12px; padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,.55); color: #fff; backdrop-filter: blur(6px); }
-  .dot { width: 9px; height: 9px; border-radius: 50%; background: #999; }
-  .badge.focused .dot { background: #4ade80; box-shadow: 0 0 0 4px rgba(74,222,128,.25); }
-  .badge.grace .dot { background: #fbbf24; }
-  .badge.away .dot { background: #f87171; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #999; flex: none; }
+  .badge.focused .dot, .screenline.study .dot { background: #4ade80; box-shadow: 0 0 0 4px rgba(74,222,128,.25); }
+  .badge.grace .dot, .screenline.unclear .dot { background: #fbbf24; }
+  .badge.away .dot, .screenline.off .dot { background: #f87171; }
+  .screenline { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--bg); font-size: 14px; margin-top: 12px; }
+  .screenline b { font-weight: 600; }
   .timer-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 16px 0 6px; flex-wrap: wrap; }
   .big { font-family: Fraunces, Georgia, serif; font-size: 52px; line-height: 1; font-variant-numeric: tabular-nums; }
   .small-stats { color: var(--muted); font-size: 14px; text-align: right; }
@@ -82,6 +74,8 @@
   .btn:disabled { opacity: .5; cursor: default; }
   .row { display: flex; gap: 10px; flex-wrap: wrap; }
   .row .btn.primary, .row .btn.stop { flex: 1; }
+  .toggle { display: flex; align-items: center; gap: 10px; font-size: 15px; margin-bottom: 14px; cursor: pointer; }
+  .toggle input { width: 22px; height: 22px; }
   .today { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
   .stat { background: var(--bg); border-radius: 12px; padding: 12px; }
   .stat b { display: block; font-family: Fraunces, Georgia, serif; font-size: 28px; font-variant-numeric: tabular-nums; }
@@ -104,12 +98,19 @@
   select, input[type=number] { font: inherit; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
   .settings { display: grid; gap: 12px; }
   .settings label { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 15px; }
+  .settings label.block { display: grid; gap: 6px; }
+  .settings textarea { min-height: 96px; font-size: 14px; font-family: ui-monospace, Menlo, monospace; }
   details summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
   .note { font-size: 13px; color: var(--muted); margin-top: 10px; }
   .stack { display: grid; gap: 16px; }
-  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--card); padding: 12px 18px; border-radius: 12px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; max-width: calc(100% - 32px); text-align: center; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--card); padding: 12px 18px; border-radius: 12px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; max-width: calc(100% - 32px); text-align: center; z-index: 30; }
   .toast.show { opacity: 1; }
-  .loading { font-size: 14px; color: var(--muted); }
+  .loading { font-size: 14px; color: var(--muted); margin-top: 8px; }
+  .alarm { position: fixed; inset: 0; background: rgba(200,52,62,.92); color: #fff; display: grid; place-items: center; z-index: 20; padding: 24px; text-align: center; animation: pulse 1s infinite alternate; }
+  .alarm h3 { font-family: Fraunces, Georgia, serif; font-size: 40px; margin: 0 0 8px; }
+  .alarm p { font-size: 18px; margin: 0 0 22px; }
+  .alarm button { background: #fff; color: #c8343e; }
+  @keyframes pulse { from { background: rgba(200,52,62,.92); } to { background: rgba(150,30,40,.95); } }
 </style>
 </head>
 <body>
@@ -130,9 +131,10 @@
       <section class="card">
         <div class="camera">
           <video id="video" playsinline muted autoplay></video>
-          <div class="cam-off" id="camOff"><div>Pick what you're studying, then press <b>Start session</b>.<br><br>Your camera stays on this device — nothing is uploaded or recorded.</div></div>
+          <div class="cam-off" id="camOff"><div>Pick what you're studying, then press <b>Start session</b>.<br><br>Your camera and screen are checked on this computer only — nothing is uploaded or recorded.</div></div>
           <div class="badge" id="badge" hidden><span class="dot"></span><span id="badgeText">Starting…</span></div>
         </div>
+        <div class="screenline unclear" id="screenLine" hidden><span class="dot"></span><span id="screenText">Screen: waiting…</span></div>
 
         <div class="timer-row">
           <div>
@@ -142,11 +144,14 @@
           <div class="small-stats">
             <div>Session length <b id="totalTime">0:00</b></div>
             <div>Focus rate <b id="focusRate">—</b></div>
+            <div>Alarms <b id="alarmCount">0</b></div>
           </div>
         </div>
         <div class="reason" id="reason"></div>
 
         <div class="acts" id="acts" role="group" aria-label="Activity"></div>
+
+        <label class="toggle" id="screenToggleRow"><input type="checkbox" id="screenOn" checked> Watch my screen too (laptop)</label>
 
         <div class="row">
           <button class="btn primary" id="startBtn">Start session</button>
@@ -157,7 +162,7 @@
 
       <section class="card">
         <h2>Writing pad</h2>
-        <textarea id="pad" placeholder="Écris ici… Do your writing practice or answer practice questions here, so the camera keeps running while you work."></textarea>
+        <textarea id="pad" placeholder="Écris ici… Do your writing practice or answer practice questions here."></textarea>
         <div class="note">Saved automatically on this device.</div>
       </section>
     </div>
@@ -195,45 +200,68 @@
                 <option value="strict">Strict</option>
               </select>
             </label>
+            <label>Ring alarm after (seconds distracted)
+              <input type="number" id="alarmAfter" min="5" max="300" step="5" value="20" style="width:90px">
+            </label>
+            <label>Alarm sound
+              <select id="alarmOn">
+                <option value="on">On</option>
+                <option value="off">Off (screen flash only)</option>
+              </select>
+            </label>
             <label>Daily goal (minutes)
               <input type="number" id="goal" min="5" max="600" step="5" value="30" style="width:90px">
             </label>
             <label>Detect phone in view
               <input type="checkbox" id="phoneOn" checked style="width:22px;height:22px">
             </label>
+            <label class="block">Study websites (one per line — always count as French study)
+              <textarea id="sites"></textarea>
+            </label>
             <div class="row">
+              <button class="btn ghost" id="testAlarm">Test alarm</button>
               <button class="btn ghost" id="exportBtn">Back up data</button>
               <button class="btn ghost" id="importBtn">Restore</button>
               <input type="file" id="importFile" accept="application/json" hidden>
             </div>
-            <div class="note">How it decides: at the start it takes 3 seconds to learn how you sit while studying. After that it pauses the clock if your face is gone, you turn your head away or look up, your eyes stay closed, or a phone is in view. Looking down at your book or notebook is fine. Short glances under 3 seconds are forgiven.</div>
+            <div class="note">How it decides: the camera pauses the clock if your face is gone, you turn away or look up, your eyes stay closed, or a phone is in view. Looking down at a book is fine. When screen watching is on, every few seconds it reads the text on your screen. Your study websites and pages that are mostly French count as study. YouTube, Netflix, Instagram and similar sites ring the alarm unless what's on screen is French. Pages full of English or other non-French text also ring it, except during "Book work", where only distracting sites count.</div>
           </div>
         </details>
       </section>
     </div>
   </div>
 </div>
+
+<div class="alarm" id="alarm" hidden>
+  <div>
+    <h3>Concentre-toi !</h3>
+    <p id="alarmWhy">You got distracted.</p>
+    <button class="btn" id="backBtn">I'm back — continue</button>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script type="module">
 const $ = (id) => document.getElementById(id);
 const ACTIVITIES = ["Reading", "Listening", "Writing", "Book work", "Practice questions", "Speaking"];
 const KEY = "frenchFocus.v1";
-const GRACE = 3; // seconds forgiven
+const GRACE = 3;            // seconds forgiven before the clock pauses
+const SCREEN_EVERY = 6000;  // ms between screen checks
+const DEFAULT_SITES = ["tefcanada.info", "deepl.com", "francaisfacile.rfi.fr", location.hostname || "github.io"];
+const DISTRACT = ["youtube", "youtu.be", "netflix", "instagram", "facebook", "tiktok", "twitter", "x.com", "reddit", "twitch",
+  "primevideo", "prime video", "hotstar", "disneyplus", "disney+", "crunchyroll", "9gag", "pinterest", "whatsapp", "discord", "snapchat", "linkedin", "amazon.com", "amazon.ca", "spotify"];
+const FR_WORDS = new Set("le la les des du de et est une un que qui dans pour pas sur avec vous nous je tu il elle ils elles ce cette ces mais ou au aux sont être avoir très plus comme par son sa ses leur leurs mon ma mes ton ta tes notre votre y ne se fait été aussi bien tout tous quand où donc car si même alors chez sans sous entre après avant encore déjà parce peut faire dit c'est j'ai il y a".split(" "));
+const EN_WORDS = new Set("the and is are you your of to in that this with for it what how was have be not from they we can will more about all this which their there would been has were when who an or but by at my me our if do does just like so get".split(" "));
 
 // ---------- storage ----------
-function load() {
-  try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
-}
-function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
-}
-const state = Object.assign({ sessions: [], goal: 30, strict: "normal", phoneOn: true, activity: "Reading", pad: "", theme: null, live: null }, load());
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} }
+const state = Object.assign({ sessions: [], goal: 30, strict: "normal", phoneOn: true, activity: "Reading", pad: "", theme: null, live: null,
+  screenOn: true, alarmAfter: 20, alarmOn: "on", sites: DEFAULT_SITES.join("\n") }, load());
 
-// recover an unfinished session (e.g. Safari closed the tab)
 if (state.live && state.live.focused > 30) {
-  state.sessions.push(state.live);
-  state.live = null; save();
+  state.sessions.push(state.live); state.live = null; save();
   setTimeout(() => toast("Recovered your last unfinished session."), 400);
 } else { state.live = null; }
 
@@ -241,7 +269,9 @@ if (state.live && state.live.focused > 30) {
 const dayKey = (d = new Date()) => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`; };
 const fmt = (s) => { s = Math.floor(s); const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60; return h ? `${h}:${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}` : `${m}:${String(sec).padStart(2,"0")}`; };
 const fmtMin = (s) => { const m = Math.round(s/60); return m >= 60 ? `${Math.floor(m/60)}h ${m%60}m` : `${m}m`; };
-function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 3200); }
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 3500); }
+const canShare = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+if (!canShare) { $("screenToggleRow").hidden = true; state.screenOn = false; }
 
 // ---------- theme ----------
 if (state.theme) document.documentElement.dataset.theme = state.theme;
@@ -272,19 +302,16 @@ function renderDash() {
   $("goalLabel").textContent = `${state.goal}m`;
   $("goalFill").style.width = Math.min(100, todaySec / (state.goal*60) * 100) + "%";
 
-  // streak: days with at least 5 focused minutes
   let streak = 0; const d = new Date();
   if ((byDay[dayKey(d)] || 0) < 300) d.setDate(d.getDate() - 1);
   while ((byDay[dayKey(d)] || 0) >= 300) { streak++; d.setDate(d.getDate() - 1); }
   $("streak").textContent = streak;
 
-  // breakdown
   const per = {};
   for (const s of allSessions()) if (s.day === today) per[s.activity] = (per[s.activity] || 0) + s.focused;
   const items = Object.entries(per).sort((a,b) => b[1]-a[1]);
   $("breakdown").innerHTML = items.length ? items.map(([a,s]) => `<li><span>${a}</span><b>${fmtMin(s)}</b></li>`).join("") : `<li class="muted">No study logged yet today.</li>`;
 
-  // week
   const days = []; for (let i = 6; i >= 0; i--) { const x = new Date(); x.setDate(x.getDate() - i); days.push(x); }
   const max = Math.max(state.goal*60, ...days.map(x => byDay[dayKey(x)] || 0));
   $("week").innerHTML = days.map(x => {
@@ -292,20 +319,25 @@ function renderDash() {
     return `<div class="col ${k===today?"today-col":""}" title="${fmtMin(v)}"><small>${v ? Math.round(v/60) : ""}</small><div class="bar" style="height:${Math.max(2, v/max*80)}%"></div><small>${x.toLocaleDateString(undefined,{weekday:"short"}).slice(0,2)}</small></div>`;
   }).join("");
 
-  // history
   const hist = [...state.sessions].reverse().slice(0, 40);
   $("history").innerHTML = hist.length ? hist.map(s => {
     const when = new Date(s.start);
     const rate = s.total ? Math.round(s.focused / s.total * 100) : 0;
-    return `<li><span>${when.toLocaleDateString(undefined,{month:"short",day:"numeric"})} · ${when.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})} <span class="pill">${s.activity}</span></span><span><b>${fmtMin(s.focused)}</b> <span class="muted">${rate}%</span></span></li>`;
+    const al = s.alarms ? ` · ${s.alarms} 🔔` : "";
+    return `<li><span>${when.toLocaleDateString(undefined,{month:"short",day:"numeric"})} · ${when.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})} <span class="pill">${s.activity}</span></span><span><b>${fmtMin(s.focused)}</b> <span class="muted">${rate}%${al}</span></span></li>`;
   }).join("") : `<li class="muted">Your finished sessions will show here.</li>`;
 }
 
 // ---------- settings ----------
 $("strict").value = state.strict; $("goal").value = state.goal; $("phoneOn").checked = state.phoneOn; $("pad").value = state.pad || "";
+$("screenOn").checked = state.screenOn; $("alarmAfter").value = state.alarmAfter; $("alarmOn").value = state.alarmOn; $("sites").value = state.sites;
 $("strict").onchange = e => { state.strict = e.target.value; save(); };
 $("goal").onchange = e => { state.goal = Math.max(5, +e.target.value || 30); save(); renderDash(); };
 $("phoneOn").onchange = e => { state.phoneOn = e.target.checked; save(); };
+$("screenOn").onchange = e => { state.screenOn = e.target.checked; save(); };
+$("alarmAfter").onchange = e => { state.alarmAfter = Math.max(5, +e.target.value || 20); save(); };
+$("alarmOn").onchange = e => { state.alarmOn = e.target.value; save(); };
+$("sites").oninput = e => { state.sites = e.target.value; save(); };
 $("pad").oninput = e => { state.pad = e.target.value; save(); };
 $("exportBtn").onclick = () => {
   const blob = new Blob([JSON.stringify({ sessions: state.sessions, goal: state.goal }, null, 2)], { type: "application/json" });
@@ -322,14 +354,133 @@ $("importFile").onchange = async e => {
   } catch { toast("That file couldn't be read."); }
 };
 
-// ---------- vision ----------
-let vision, face, phoneDet, stream, session = null, raf = 0;
+// ---------- alarm ----------
+let audio = null, beepTimer = 0, alarmRinging = false, snoozeUntil = 0;
+function unlockAudio() {
+  try { audio ??= new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === "suspended") audio.resume(); } catch {}
+}
+function beep() {
+  if (!audio || state.alarmOn !== "on") return;
+  const t = audio.currentTime;
+  for (let i = 0; i < 3; i++) {
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.type = "square"; o.frequency.value = i % 2 ? 660 : 880;
+    g.gain.setValueAtTime(0.0001, t + i*0.22); g.gain.exponentialRampToValueAtTime(0.25, t + i*0.22 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + i*0.22 + 0.18);
+    o.connect(g).connect(audio.destination); o.start(t + i*0.22); o.stop(t + i*0.22 + 0.2);
+  }
+}
+function startAlarm(why) {
+  if (alarmRinging) { $("alarmWhy").textContent = why; return; }
+  alarmRinging = true;
+  if (session) session.alarms++;
+  $("alarmCount").textContent = session ? session.alarms : 0;
+  $("alarmWhy").textContent = why; $("alarm").hidden = false;
+  document.title = "⚠️ Back to French!";
+  beep(); beepTimer = setInterval(beep, 1200);
+  try { if ("Notification" in window && Notification.permission === "granted" && document.hidden) new Notification("Back to French! 🇫🇷", { body: why, silent: false }); } catch {}
+}
+function stopAlarm() {
+  if (!alarmRinging) return;
+  alarmRinging = false; clearInterval(beepTimer); $("alarm").hidden = true; document.title = "French Focus";
+}
+$("backBtn").onclick = () => { stopAlarm(); snoozeUntil = performance.now() + 10000; if (session) { session.awaySince = null; session.screenBadSince = null; } };
+$("testAlarm").onclick = () => { unlockAudio(); beep(); toast("That's the alarm sound."); };
+
+// ---------- screen reading (on-device OCR) ----------
+let ocr = null, ocrLoading = null, screenStream = null, screenCap = null;
+async function loadOCR() {
+  if (ocr) return ocr;
+  ocrLoading ??= (async () => {
+    $("loading").textContent = "Loading the screen reader (first time takes ~20 seconds)…";
+    ocr = await Tesseract.createWorker(["fra", "eng"]);
+    $("loading").textContent = "";
+    return ocr;
+  })();
+  return ocrLoading;
+}
+function siteKeys() {
+  return state.sites.split(/\n|,/).map(s => s.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0]).filter(Boolean);
+}
+const norm = (t) => t.toLowerCase().replace(/\s+/g, "");
+function frenchScore(text) {
+  const words = text.toLowerCase().normalize("NFC").match(/[a-zàâäçéèêëîïôöùûüœæ']+/g) || [];
+  let fr = 0, en = 0;
+  for (const w of words) { if (FR_WORDS.has(w)) fr++; else if (EN_WORDS.has(w)) en++; }
+  const accents = (text.match(/[àâçéèêëîïôùûœ]/gi) || []).length;
+  fr += accents * 0.5;
+  return { words: words.length, ratio: fr + en ? fr / (fr + en) : 0, fr, en };
+}
+function cropToCanvas(bmp, y0, y1, maxW) {
+  const w = bmp.width, h = Math.round((y1 - y0));
+  const scale = Math.min(1, maxW / w);
+  const c = document.createElement("canvas");
+  c.width = Math.round(w * scale); c.height = Math.round(h * scale);
+  c.getContext("2d").drawImage(bmp, 0, y0, w, h, 0, 0, c.width, c.height);
+  return c;
+}
+async function grabFrom(track, videoEl) {
+  try { if ("ImageCapture" in window) return await new ImageCapture(track).grabFrame(); } catch {}
+  return videoEl ? await createImageBitmap(videoEl) : null;
+}
+let screenVideo = null;
+async function checkScreen() {
+  const s = session;
+  if (!s || !screenStream || s.screenBusy) return;
+  s.screenBusy = true;
+  try {
+    const track = screenStream.getVideoTracks()[0];
+    const bmp = await grabFrom(track, screenVideo);
+    if (!bmp) return;
+    const headH = Math.round(bmp.height * 0.11);
+    const head = cropToCanvas(bmp, 0, headH, 2400);
+    const body = cropToCanvas(bmp, headH, bmp.height, 1600);
+    const worker = await loadOCR();
+    const headText = (await worker.recognize(head)).data.text || "";
+    const bodyText = (await worker.recognize(body)).data.text || "";
+    if (!session) return;
+    const headN = norm(headText), allN = norm(headText + " " + bodyText);
+    const score = frenchScore(bodyText + " " + headText);
+    const studyHit = siteKeys().find(k => headN.includes(k) || allN.includes(k));
+    const distractHit = DISTRACT.find(k => allN.includes(norm(k)));
+    let verdict, label;
+    if (studyHit) { verdict = "study"; label = `Studying on ${studyHit}`; }
+    else if (score.ratio >= 0.45 && score.fr >= 4) { verdict = "study"; label = distractHit ? `French content on ${distractHit}` : "French on screen"; }
+    else if (distractHit) { verdict = "off"; label = `Distraction: ${distractHit.replace(/\.com|\.ca/, "")}`; }
+    else if (score.words < 25) { verdict = "unclear"; label = "Not much text on screen"; }
+    else if (state.activity === "Book work") { verdict = "unclear"; label = "Non-French screen (ignored during book work)"; }
+    else { verdict = "off"; label = "Not French — off topic"; }
+    s.screen = verdict; s.screenLabel = label;
+    $("screenLine").className = "screenline " + verdict;
+    $("screenText").textContent = "Screen: " + label;
+    bmp.close?.();
+  } catch (e) {
+    console.warn("screen check failed", e);
+  } finally { if (s) s.screenBusy = false; }
+}
+async function startScreen() {
+  screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: "monitor", frameRate: 2 }, audio: false, selfBrowserSurface: "include", surfaceSwitching: "exclude", monitorTypeSurfaces: "include" });
+  const track = screenStream.getVideoTracks()[0];
+  const surface = track.getSettings().displaySurface;
+  if (surface && surface !== "monitor") toast("Tip: choose “Entire screen” so it can see every window, not just one.");
+  screenVideo = document.createElement("video"); screenVideo.muted = true; screenVideo.playsInline = true; screenVideo.srcObject = screenStream; screenVideo.play().catch(() => {});
+  track.onended = () => {
+    screenStream = null;
+    if (session) { session.screen = "unclear"; $("screenLine").className = "screenline unclear"; $("screenText").textContent = "Screen sharing stopped — only the camera is watching now."; }
+  };
+  $("screenLine").hidden = false; $("screenLine").className = "screenline unclear"; $("screenText").textContent = "Screen: reading…";
+}
+function stopScreen() {
+  if (screenStream) screenStream.getTracks().forEach(t => t.stop());
+  screenStream = null; screenVideo = null; $("screenLine").hidden = true;
+}
+
+// ---------- camera vision ----------
+let vision, face, phoneDet, stream, session = null;
 const THRESH = {
   relaxed: { yaw: 0.26, up: 0.16, eyes: 8 },
   normal:  { yaw: 0.20, up: 0.12, eyes: 5 },
   strict:  { yaw: 0.14, up: 0.08, eyes: 3 },
 };
-
 async function loadModels() {
   if (face) return;
   $("loading").textContent = "Loading the focus detector (first time takes a few seconds)…";
@@ -349,7 +500,6 @@ async function loadModels() {
   catch { try { phoneDet = await ObjectDetector.createFromOptions(vision, objOpts("CPU")); } catch { phoneDet = null; } }
   $("loading").textContent = "";
 }
-
 async function startCamera() {
   stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
   const v = $("video"); v.srcObject = stream; await v.play();
@@ -359,134 +509,144 @@ function stopCamera() {
   if (stream) stream.getTracks().forEach(t => t.stop());
   stream = null; $("video").srcObject = null; $("camOff").hidden = false;
 }
-
-// pose features from landmarks: horizontal nose position and vertical nose position within face
 function poseOf(lm) {
   const L = lm[234], R = lm[454], nose = lm[1], top = lm[10], chin = lm[152];
-  const yaw = (nose.x - L.x) / ((R.x - L.x) || 1e-6);
-  const pitch = (nose.y - top.y) / ((chin.y - top.y) || 1e-6);
-  return { yaw, pitch };
+  return { yaw: (nose.x - L.x) / ((R.x - L.x) || 1e-6), pitch: (nose.y - top.y) / ((chin.y - top.y) || 1e-6) };
 }
 function blinkOf(res) {
   const cats = res.faceBlendshapes?.[0]?.categories || [];
   const get = (n) => cats.find(c => c.categoryName === n)?.score ?? 0;
   return (get("eyeBlinkLeft") + get("eyeBlinkRight")) / 2;
 }
-
 function liveRecord() {
-  return { day: dayKey(session.startDate), start: session.start, activity: session.activity, focused: Math.round(session.focused), total: Math.round(session.total) };
+  return { day: dayKey(session.startDate), start: session.start, activity: session.activity, focused: Math.round(session.focused), total: Math.round(session.total), alarms: session.alarms };
 }
+function setBadge(kind, text) { const b = $("badge"); b.hidden = false; b.className = "badge " + kind; $("badgeText").textContent = text; }
 
-function setBadge(kind, text) {
-  const b = $("badge"); b.hidden = false; b.className = "badge " + kind; $("badgeText").textContent = text;
-}
+// A worker-based clock keeps ticking even when this tab is in the background.
+const ticker = new Worker(URL.createObjectURL(new Blob(["let t=0;onmessage=e=>{clearInterval(t);if(e.data>0)t=setInterval(()=>postMessage(0),e.data)}"], { type: "text/javascript" })));
+ticker.onmessage = () => tick();
 
 async function start() {
   $("startBtn").disabled = true;
+  unlockAudio();
+  const wantScreen = canShare && state.screenOn;
   try {
+    if (wantScreen) await startScreen();       // ask for the screen first, while the click still counts
     await loadModels();
     await startCamera();
+    if (wantScreen) loadOCR().catch(err => toast("Screen reader failed to load: " + err.message));
+    if ("Notification" in window && Notification.permission === "default") Notification.requestPermission().catch(() => {});
   } catch (err) {
     $("startBtn").disabled = false; $("loading").textContent = "";
-    if (err && err.name === "NotAllowedError") toast("Camera permission was blocked. Allow camera access for this site in Settings, then try again.");
+    if (err && err.name === "NotAllowedError") toast("Permission was blocked. Allow camera" + (wantScreen ? " and screen sharing" : "") + " for this site, then try again.");
     else toast("Couldn't start: " + (err?.message || err));
-    stopCamera(); return;
+    stopCamera(); stopScreen(); return;
   }
   session = {
     start: Date.now(), startDate: new Date(), activity: state.activity,
-    focused: 0, total: 0, pending: 0, awaySince: null, eyesSince: null, phoneSince: null,
-    calib: [], base: null, last: performance.now(), lastFace: 0, lastPhone: 0, phoneSeen: false,
-    reason: "", lastSave: 0,
+    focused: 0, total: 0, pending: 0, awaySince: null, eyesSince: null, alarms: 0,
+    calib: [], base: null, last: performance.now(), lastPhone: 0, phoneSeen: false,
+    lastSave: 0, lastScreen: 0, screen: "unclear", screenLabel: "", screenBusy: false, screenBadSince: null,
   };
+  $("alarmCount").textContent = "0";
   $("startBtn").hidden = true; $("stopBtn").hidden = false; $("startBtn").disabled = false;
   setBadge("grace", "Calibrating — look at your study material");
-  loop();
+  ticker.postMessage(150);
 }
 
 function finish() {
   if (!session) return;
-  cancelAnimationFrame(raf);
+  ticker.postMessage(0); stopAlarm();
   const rec = liveRecord();
   session = null; state.live = null;
   if (rec.focused >= 10) { state.sessions.push(rec); toast(`Saved ${fmtMin(rec.focused)} of focused ${rec.activity.toLowerCase()}. Bravo !`); }
   else toast("Session was too short to save.");
-  save(); stopCamera();
+  save(); stopCamera(); stopScreen();
   $("badge").hidden = true; $("stopBtn").hidden = true; $("startBtn").hidden = false;
   $("focusTime").textContent = "0:00"; $("totalTime").textContent = "0:00"; $("focusRate").textContent = "—"; $("reason").textContent = "";
   renderDash();
 }
 
-function loop() {
-  raf = requestAnimationFrame(loop);
-  const s = session, v = $("video");
-  if (!s || !v.videoWidth) return;
-  const now = performance.now();
-  if (now - s.lastFace < 110) return; // ~9 checks a second
-  let dt = (now - s.last) / 1000; s.last = now; s.lastFace = now;
-  if (dt > 1.5) dt = 0; // app was in background; don't count the gap
+let ticking = false;
+async function tick() {
+  const s = session;
+  if (!s || ticking || !stream) return;
+  ticking = true;
+  try {
+    const now = performance.now();
+    let dt = (now - s.last) / 1000; s.last = now;
+    if (dt > 3) dt = 0; // computer slept — don't count the gap
 
-  const res = face.detectForVideo(v, now);
-  const lm = res.faceLandmarks?.[0];
-  const T = THRESH[state.strict];
+    const camTrack = stream.getVideoTracks()[0];
+    const frame = document.hidden ? await grabFrom(camTrack, $("video")) : $("video");
+    if (!frame || (frame === $("video") && !frame.videoWidth)) return;
+    const res = face.detectForVideo(frame, now);
+    const lm = res.faceLandmarks?.[0];
+    const T = THRESH[state.strict];
 
-  // phone check about once a second
-  if (state.phoneOn && phoneDet && now - s.lastPhone > 900) {
-    s.lastPhone = now;
-    try { s.phoneSeen = (phoneDet.detectForVideo(v, now).detections || []).length > 0; } catch { s.phoneSeen = false; }
-  } else if (!state.phoneOn) s.phoneSeen = false;
+    if (state.phoneOn && phoneDet && now - s.lastPhone > 900) {
+      s.lastPhone = now;
+      try { s.phoneSeen = (phoneDet.detectForVideo(frame, now + 0.5).detections || []).length > 0; } catch { s.phoneSeen = false; }
+    } else if (!state.phoneOn) s.phoneSeen = false;
+    if (frame !== $("video")) frame.close?.();
 
-  // calibration: first ~3s with a face
-  if (!s.base) {
-    if (lm) s.calib.push(poseOf(lm));
-    if (s.calib.length >= 25) {
-      const avg = (k) => s.calib.reduce((a, p) => a + p[k], 0) / s.calib.length;
-      s.base = { yaw: avg("yaw"), pitch: avg("pitch") };
-      toast("Calibrated. Bonne étude !");
-    } else { $("reason").textContent = lm ? "Learning your study position…" : "Sit where you'll study so the camera can see your face."; return; }
-  }
+    if (screenStream && now - s.lastScreen > SCREEN_EVERY) { s.lastScreen = now; checkScreen(); }
 
-  // decide
-  let reason = "";
-  if (!lm) reason = "Can't see you";
-  else {
-    const p = poseOf(lm);
-    const blink = blinkOf(res);
-    if (Math.abs(p.yaw - s.base.yaw) > T.yaw) reason = "Head turned away";
-    else if (s.base.pitch - p.pitch > T.up) reason = "Looking up / away from your work";
-    if (blink > 0.82) { s.eyesSince ??= now; if ((now - s.eyesSince) / 1000 > T.eyes && !reason) reason = "Eyes closed — taking a nap?"; }
-    else s.eyesSince = null;
-  }
-  if (!reason && s.phoneSeen) reason = "Phone in view";
+    if (!s.base) {
+      if (lm) s.calib.push(poseOf(lm));
+      if (s.calib.length >= 20) {
+        const avg = (k) => s.calib.reduce((a, p) => a + p[k], 0) / s.calib.length;
+        s.base = { yaw: avg("yaw"), pitch: avg("pitch") };
+        toast("Calibrated. Bonne étude !");
+      } else { $("reason").textContent = lm ? "Learning your study position…" : "Sit where you'll study so the camera can see your face."; return; }
+    }
 
-  s.total += dt;
-  if (!reason) {
-    s.focused += dt + s.pending; s.pending = 0; s.awaySince = null;
-    setBadge("focused", "Focused"); $("reason").className = "reason"; $("reason").textContent = `Counting your ${s.activity.toLowerCase()} time.`;
-  } else {
-    s.awaySince ??= now;
-    const away = (now - s.awaySince) / 1000;
-    if (away < GRACE) { s.pending += dt; setBadge("grace", reason); }
-    else { s.pending = 0; setBadge("away", "Paused"); }
-    $("reason").className = away >= GRACE ? "reason warn" : "reason";
-    $("reason").textContent = away >= GRACE ? `Paused: ${reason.toLowerCase()}.` : `${reason}…`;
-  }
+    // camera verdict
+    let reason = "";
+    if (!lm) reason = "Can't see you";
+    else {
+      const p = poseOf(lm);
+      if (Math.abs(p.yaw - s.base.yaw) > T.yaw) reason = "Head turned away";
+      else if (s.base.pitch - p.pitch > T.up) reason = "Looking up / away from your work";
+      if (blinkOf(res) > 0.82) { s.eyesSince ??= now; if ((now - s.eyesSince) / 1000 > T.eyes && !reason) reason = "Eyes closed — taking a nap?"; }
+      else s.eyesSince = null;
+    }
+    if (!reason && s.phoneSeen) reason = "Phone in view";
+    // screen verdict
+    if (!reason && screenStream && s.screen === "off") reason = s.screenLabel;
 
-  $("focusTime").textContent = fmt(s.focused);
-  $("totalTime").textContent = fmt(s.total);
-  $("focusRate").textContent = s.total > 5 ? Math.round(s.focused / s.total * 100) + "%" : "—";
+    s.total += dt;
+    if (!reason) {
+      s.focused += dt + s.pending; s.pending = 0; s.awaySince = null;
+      stopAlarm();
+      setBadge("focused", "Focused"); $("reason").className = "reason"; $("reason").textContent = `Counting your ${s.activity.toLowerCase()} time.`;
+    } else {
+      s.awaySince ??= now;
+      const away = (now - s.awaySince) / 1000;
+      if (away < GRACE) { s.pending += dt; setBadge("grace", reason); }
+      else { s.pending = 0; setBadge("away", "Paused"); }
+      $("reason").className = away >= GRACE ? "reason warn" : "reason";
+      $("reason").textContent = away >= GRACE ? `Paused: ${reason}.` : `${reason}…`;
+      if (away >= state.alarmAfter && now > snoozeUntil) startAlarm(reason + ".");
+    }
 
-  if (now - s.lastSave > 10000) { s.lastSave = now; state.live = liveRecord(); save(); renderDash(); }
+    $("focusTime").textContent = fmt(s.focused);
+    $("totalTime").textContent = fmt(s.total);
+    $("focusRate").textContent = s.total > 5 ? Math.round(s.focused / s.total * 100) + "%" : "—";
+    if (now - s.lastSave > 10000) { s.lastSave = now; state.live = liveRecord(); save(); renderDash(); }
+  } catch (e) {
+    console.warn("tick failed", e);
+  } finally { ticking = false; }
 }
 
 $("startBtn").onclick = start;
 $("stopBtn").onclick = finish;
 
-// iPad/Safari kills the camera when you switch apps — restart it when you come back
 document.addEventListener("visibilitychange", async () => {
   if (!session) return;
   if (document.hidden) { state.live = liveRecord(); save(); }
   else {
-    session.last = performance.now();
     const live = stream && stream.getVideoTracks().some(t => t.readyState === "live");
     if (!live) { try { await startCamera(); } catch { toast("Tap Start again to turn the camera back on."); } }
   }
