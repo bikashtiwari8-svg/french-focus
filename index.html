@@ -41,6 +41,7 @@
     --shadow: none;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html, body { margin: 0; }
   body {
     background: var(--bg); color: var(--ink);
@@ -129,7 +130,7 @@
       <section class="card">
         <div class="camera">
           <video id="video" playsinline muted autoplay></video>
-          <div class="cam-off" id="camOff">Pick what you're studying, then press <b>&nbsp;Start session</b>.<br>Your camera stays on this device — nothing is uploaded or recorded.</div>
+          <div class="cam-off" id="camOff"><div>Pick what you're studying, then press <b>Start session</b>.<br><br>Your camera stays on this device — nothing is uploaded or recorded.</div></div>
           <div class="badge" id="badge" hidden><span class="dot"></span><span id="badgeText">Starting…</span></div>
         </div>
 
