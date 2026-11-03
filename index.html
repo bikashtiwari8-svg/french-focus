@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="French Focus">
+<meta name="theme-color" content="#1f2a5a">
+<title>French Focus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f3ea;
+    --card: #ffffff;
+    --ink: #1c2240;
+    --muted: #6b7088;
+    --line: #e6e0d2;
+    --blue: #1f2a5a;
+    --blue-soft: #e7eaf6;
+    --red: #c8343e;
+    --red-soft: #fbe7e8;
+    --green: #2f8f5b;
+    --green-soft: #e3f3ea;
+    --amber: #b7791f;
+    --amber-soft: #fbf0dc;
+    --shadow: 0 1px 2px rgba(28,34,64,.06), 0 6px 20px rgba(28,34,64,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12142a; --card: #1b1e3a; --ink: #eef0fa; --muted: #9aa0bf; --line: #2c3056;
+      --blue: #9fb0ff; --blue-soft: #252b55; --red: #ff6b74; --red-soft: #3a2030;
+      --green: #5fd393; --green-soft: #1d3a2e; --amber: #f2b65a; --amber-soft: #3a2f1c;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12142a; --card: #1b1e3a; --ink: #eef0fa; --muted: #9aa0bf; --line: #2c3056;
+    --blue: #9fb0ff; --blue-soft: #252b55; --red: #ff6b74; --red-soft: #3a2030;
+    --green: #5fd393; --green-soft: #1d3a2e; --amber: #f2b65a; --amber-soft: #3a2f1c;
+    --shadow: none;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: Inter, -apple-system, system-ui, sans-serif; font-size: 16px; line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 20px 16px 48px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .flag { width: 30px; height: 20px; border-radius: 3px; overflow: hidden; display: flex; flex: none; }
+  .flag i { flex: 1; } .flag i:nth-child(1){background:#2b3f9e} .flag i:nth-child(2){background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)} .flag i:nth-child(3){background:#d33a44}
+  h1 { font-family: Fraunces, Georgia, serif; font-size: 26px; margin: 0; letter-spacing: -.01em; }
+  .sub { color: var(--muted); font-size: 14px; }
+  .grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; }
+  @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); }
+  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+  .camera { position: relative; border-radius: 12px; overflow: hidden; background: #0d1024; aspect-ratio: 4 / 3; }
+  video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: block; }
+  .cam-off { position: absolute; inset: 0; display: grid; place-items: center; color: #b9bfdc; text-align: center; padding: 20px; font-size: 15px; }
+  .badge { position: absolute; left: 12px; top: 12px; padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,.55); color: #fff; backdrop-filter: blur(6px); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #999; }
+  .badge.focused .dot { background: #4ade80; box-shadow: 0 0 0 4px rgba(74,222,128,.25); }
+  .badge.grace .dot { background: #fbbf24; }
+  .badge.away .dot { background: #f87171; }
+  .timer-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 16px 0 6px; flex-wrap: wrap; }
+  .big { font-family: Fraunces, Georgia, serif; font-size: 52px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .small-stats { color: var(--muted); font-size: 14px; text-align: right; }
+  .reason { min-height: 22px; font-size: 14px; color: var(--muted); margin-bottom: 14px; }
+  .reason.warn { color: var(--red); }
+  .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .chip { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 999px; padding: 9px 14px; font: inherit; font-size: 15px; cursor: pointer; min-height: 44px; }
+  .chip[aria-pressed="true"] { background: var(--blue); color: var(--card); border-color: var(--blue); }
+  .btn { border: 0; border-radius: 12px; padding: 14px 18px; font: inherit; font-weight: 600; font-size: 16px; cursor: pointer; min-height: 48px; }
+  .btn.primary { background: var(--blue); color: var(--card); }
+  .btn.stop { background: var(--red); color: #fff; }
+  .btn.ghost { background: var(--blue-soft); color: var(--ink); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .row .btn.primary, .row .btn.stop { flex: 1; }
+  .today { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .stat { background: var(--bg); border-radius: 12px; padding: 12px; }
+  .stat b { display: block; font-family: Fraunces, Georgia, serif; font-size: 28px; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); font-size: 13px; }
+  .goalbar { height: 10px; background: var(--bg); border-radius: 99px; overflow: hidden; margin: 6px 0 4px; }
+  .goalbar i { display: block; height: 100%; background: var(--green); width: 0; transition: width .4s; border-radius: 99px; }
+  .week { display: flex; align-items: flex-end; gap: 8px; height: 120px; margin-top: 8px; }
+  .week .col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+  .week .bar { width: 100%; max-width: 34px; background: var(--blue); border-radius: 6px 6px 3px 3px; min-height: 3px; }
+  .week .col.today-col .bar { background: var(--red); }
+  .week small { font-size: 12px; color: var(--muted); }
+  .breakdown { list-style: none; padding: 0; margin: 0; }
+  .breakdown li { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+  .breakdown li:last-child { border-bottom: 0; }
+  .muted { color: var(--muted); }
+  .history { list-style: none; padding: 0; margin: 0; max-height: 260px; overflow: auto; }
+  .history li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .pill { font-size: 12px; padding: 2px 8px; border-radius: 99px; background: var(--blue-soft); }
+  textarea { width: 100%; min-height: 140px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 12px; padding: 12px; font: inherit; resize: vertical; }
+  select, input[type=number] { font: inherit; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+  .settings { display: grid; gap: 12px; }
+  .settings label { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 15px; }
+  details summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
+  .note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .stack { display: grid; gap: 16px; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--card); padding: 12px 18px; border-radius: 12px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s; max-width: calc(100% - 32px); text-align: center; }
+  .toast.show { opacity: 1; }
+  .loading { font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="flag"><i></i><i></i><i></i></div>
+      <div>
+        <h1>French Focus</h1>
+        <div class="sub">Counts only the minutes you're actually studying</div>
+      </div>
+    </div>
+    <button class="chip" id="themeBtn" aria-label="Toggle theme">◐</button>
+  </header>
+
+  <div class="grid">
+    <div class="stack">
+      <section class="card">
+        <div class="camera">
+          <video id="video" playsinline muted autoplay></video>
+          <div class="cam-off" id="camOff">Pick what you're studying, then press <b>&nbsp;Start session</b>.<br>Your camera stays on this device — nothing is uploaded or recorded.</div>
+          <div class="badge" id="badge" hidden><span class="dot"></span><span id="badgeText">Starting…</span></div>
+        </div>
+
+        <div class="timer-row">
+          <div>
+            <div class="muted" style="font-size:13px">Focused time this session</div>
+            <div class="big" id="focusTime">0:00</div>
+          </div>
+          <div class="small-stats">
+            <div>Session length <b id="totalTime">0:00</b></div>
+            <div>Focus rate <b id="focusRate">—</b></div>
+          </div>
+        </div>
+        <div class="reason" id="reason"></div>
+
+        <div class="acts" id="acts" role="group" aria-label="Activity"></div>
+
+        <div class="row">
+          <button class="btn primary" id="startBtn">Start session</button>
+          <button class="btn stop" id="stopBtn" hidden>Finish &amp; save</button>
+        </div>
+        <div class="loading" id="loading"></div>
+      </section>
+
+      <section class="card">
+        <h2>Writing pad</h2>
+        <textarea id="pad" placeholder="Écris ici… Do your writing practice or answer practice questions here, so the camera keeps running while you work."></textarea>
+        <div class="note">Saved automatically on this device.</div>
+      </section>
+    </div>
+
+    <div class="stack">
+      <section class="card">
+        <h2>Today</h2>
+        <div class="today">
+          <div class="stat"><b id="todayMin">0m</b><span>focused today</span></div>
+          <div class="stat"><b id="streak">0</b><span>day streak 🔥</span></div>
+        </div>
+        <div class="muted" style="font-size:14px">Daily goal: <span id="goalLabel">30m</span></div>
+        <div class="goalbar"><i id="goalFill"></i></div>
+        <ul class="breakdown" id="breakdown" style="margin-top:10px"></ul>
+      </section>
+
+      <section class="card">
+        <h2>Last 7 days</h2>
+        <div class="week" id="week"></div>
+      </section>
+
+      <section class="card">
+        <h2>Sessions</h2>
+        <ul class="history" id="history"></ul>
+      </section>
+
+      <section class="card">
+        <details>
+          <summary>Settings</summary>
+          <div class="settings" style="margin-top:12px">
+            <label>Strictness
+              <select id="strict">
+                <option value="relaxed">Relaxed</option>
+                <option value="normal" selected>Normal</option>
+                <option value="strict">Strict</option>
+              </select>
+            </label>
+            <label>Daily goal (minutes)
+              <input type="number" id="goal" min="5" max="600" step="5" value="30" style="width:90px">
+            </label>
+            <label>Detect phone in view
+              <input type="checkbox" id="phoneOn" checked style="width:22px;height:22px">
+            </label>
+            <div class="row">
+              <button class="btn ghost" id="exportBtn">Back up data</button>
+              <button class="btn ghost" id="importBtn">Restore</button>
+              <input type="file" id="importFile" accept="application/json" hidden>
+            </div>
+            <div class="note">How it decides: at the start it takes 3 seconds to learn how you sit while studying. After that it pauses the clock if your face is gone, you turn your head away or look up, your eyes stay closed, or a phone is in view. Looking down at your book or notebook is fine. Short glances under 3 seconds are forgiven.</div>
+          </div>
+        </details>
+      </section>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const ACTIVITIES = ["Reading", "Listening", "Writing", "Book work", "Practice questions", "Speaking"];
+const KEY = "frenchFocus.v1";
+const GRACE = 3; // seconds forgiven
+
+// ---------- storage ----------
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
+}
+const state = Object.assign({ sessions: [], goal: 30, strict: "normal", phoneOn: true, activity: "Reading", pad: "", theme: null, live: null }, load());
+
+// recover an unfinished session (e.g. Safari closed the tab)
+if (state.live && state.live.focused > 30) {
+  state.sessions.push(state.live);
+  state.live = null; save();
+  setTimeout(() => toast("Recovered your last unfinished session."), 400);
+} else { state.live = null; }
+
+// ---------- helpers ----------
+const dayKey = (d = new Date()) => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`; };
+const fmt = (s) => { s = Math.floor(s); const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60; return h ? `${h}:${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}` : `${m}:${String(sec).padStart(2,"0")}`; };
+const fmtMin = (s) => { const m = Math.round(s/60); return m >= 60 ? `${Math.floor(m/60)}h ${m%60}m` : `${m}m`; };
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 3200); }
+
+// ---------- theme ----------
+if (state.theme) document.documentElement.dataset.theme = state.theme;
+$("themeBtn").onclick = () => {
+  const dark = state.theme ? state.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  state.theme = dark ? "light" : "dark"; document.documentElement.dataset.theme = state.theme; save();
+};
+
+// ---------- activity chips ----------
+function renderActs() {
+  $("acts").innerHTML = "";
+  for (const a of ACTIVITIES) {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = a; b.setAttribute("aria-pressed", String(a === state.activity));
+    b.onclick = () => { state.activity = a; if (session) session.activity = a; save(); renderActs(); };
+    $("acts").appendChild(b);
+  }
+}
+
+// ---------- dashboard ----------
+function allSessions() { return session ? [...state.sessions, liveRecord()] : state.sessions; }
+function renderDash() {
+  const today = dayKey();
+  const byDay = {};
+  for (const s of allSessions()) byDay[s.day] = (byDay[s.day] || 0) + s.focused;
+  const todaySec = byDay[today] || 0;
+  $("todayMin").textContent = fmtMin(todaySec);
+  $("goalLabel").textContent = `${state.goal}m`;
+  $("goalFill").style.width = Math.min(100, todaySec / (state.goal*60) * 100) + "%";
+
+  // streak: days with at least 5 focused minutes
+  let streak = 0; const d = new Date();
+  if ((byDay[dayKey(d)] || 0) < 300) d.setDate(d.getDate() - 1);
+  while ((byDay[dayKey(d)] || 0) >= 300) { streak++; d.setDate(d.getDate() - 1); }
+  $("streak").textContent = streak;
+
+  // breakdown
+  const per = {};
+  for (const s of allSessions()) if (s.day === today) per[s.activity] = (per[s.activity] || 0) + s.focused;
+  const items = Object.entries(per).sort((a,b) => b[1]-a[1]);
+  $("breakdown").innerHTML = items.length ? items.map(([a,s]) => `<li><span>${a}</span><b>${fmtMin(s)}</b></li>`).join("") : `<li class="muted">No study logged yet today.</li>`;
+
+  // week
+  const days = []; for (let i = 6; i >= 0; i--) { const x = new Date(); x.setDate(x.getDate() - i); days.push(x); }
+  const max = Math.max(state.goal*60, ...days.map(x => byDay[dayKey(x)] || 0));
+  $("week").innerHTML = days.map(x => {
+    const k = dayKey(x), v = byDay[k] || 0;
+    return `<div class="col ${k===today?"today-col":""}" title="${fmtMin(v)}"><small>${v ? Math.round(v/60) : ""}</small><div class="bar" style="height:${Math.max(2, v/max*80)}%"></div><small>${x.toLocaleDateString(undefined,{weekday:"short"}).slice(0,2)}</small></div>`;
+  }).join("");
+
+  // history
+  const hist = [...state.sessions].reverse().slice(0, 40);
+  $("history").innerHTML = hist.length ? hist.map(s => {
+    const when = new Date(s.start);
+    const rate = s.total ? Math.round(s.focused / s.total * 100) : 0;
+    return `<li><span>${when.toLocaleDateString(undefined,{month:"short",day:"numeric"})} · ${when.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})} <span class="pill">${s.activity}</span></span><span><b>${fmtMin(s.focused)}</b> <span class="muted">${rate}%</span></span></li>`;
+  }).join("") : `<li class="muted">Your finished sessions will show here.</li>`;
+}
+
+// ---------- settings ----------
+$("strict").value = state.strict; $("goal").value = state.goal; $("phoneOn").checked = state.phoneOn; $("pad").value = state.pad || "";
+$("strict").onchange = e => { state.strict = e.target.value; save(); };
+$("goal").onchange = e => { state.goal = Math.max(5, +e.target.value || 30); save(); renderDash(); };
+$("phoneOn").onchange = e => { state.phoneOn = e.target.checked; save(); };
+$("pad").oninput = e => { state.pad = e.target.value; save(); };
+$("exportBtn").onclick = () => {
+  const blob = new Blob([JSON.stringify({ sessions: state.sessions, goal: state.goal }, null, 2)], { type: "application/json" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `french-focus-backup-${dayKey()}.json`; a.click();
+};
+$("importBtn").onclick = () => $("importFile").click();
+$("importFile").onchange = async e => {
+  try {
+    const data = JSON.parse(await e.target.files[0].text());
+    const seen = new Set(state.sessions.map(s => s.start));
+    let added = 0;
+    for (const s of data.sessions || []) if (!seen.has(s.start)) { state.sessions.push(s); added++; }
+    state.sessions.sort((a,b) => a.start - b.start); save(); renderDash(); toast(`Restored ${added} sessions.`);
+  } catch { toast("That file couldn't be read."); }
+};
+
+// ---------- vision ----------
+let vision, face, phoneDet, stream, session = null, raf = 0;
+const THRESH = {
+  relaxed: { yaw: 0.26, up: 0.16, eyes: 8 },
+  normal:  { yaw: 0.20, up: 0.12, eyes: 5 },
+  strict:  { yaw: 0.14, up: 0.08, eyes: 3 },
+};
+
+async function loadModels() {
+  if (face) return;
+  $("loading").textContent = "Loading the focus detector (first time takes a few seconds)…";
+  const { FilesetResolver, FaceLandmarker, ObjectDetector } = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs");
+  vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+  const faceOpts = (delegate) => ({
+    baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task", delegate },
+    runningMode: "VIDEO", numFaces: 1, outputFaceBlendshapes: true,
+  });
+  const objOpts = (delegate) => ({
+    baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/float16/1/efficientdet_lite0.tflite", delegate },
+    runningMode: "VIDEO", scoreThreshold: 0.45, categoryAllowlist: ["cell phone"], maxResults: 2,
+  });
+  try { face = await FaceLandmarker.createFromOptions(vision, faceOpts("GPU")); }
+  catch { face = await FaceLandmarker.createFromOptions(vision, faceOpts("CPU")); }
+  try { phoneDet = await ObjectDetector.createFromOptions(vision, objOpts("GPU")); }
+  catch { try { phoneDet = await ObjectDetector.createFromOptions(vision, objOpts("CPU")); } catch { phoneDet = null; } }
+  $("loading").textContent = "";
+}
+
+async function startCamera() {
+  stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+  const v = $("video"); v.srcObject = stream; await v.play();
+  $("camOff").hidden = true;
+}
+function stopCamera() {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  stream = null; $("video").srcObject = null; $("camOff").hidden = false;
+}
+
+// pose features from landmarks: horizontal nose position and vertical nose position within face
+function poseOf(lm) {
+  const L = lm[234], R = lm[454], nose = lm[1], top = lm[10], chin = lm[152];
+  const yaw = (nose.x - L.x) / ((R.x - L.x) || 1e-6);
+  const pitch = (nose.y - top.y) / ((chin.y - top.y) || 1e-6);
+  return { yaw, pitch };
+}
+function blinkOf(res) {
+  const cats = res.faceBlendshapes?.[0]?.categories || [];
+  const get = (n) => cats.find(c => c.categoryName === n)?.score ?? 0;
+  return (get("eyeBlinkLeft") + get("eyeBlinkRight")) / 2;
+}
+
+function liveRecord() {
+  return { day: dayKey(session.startDate), start: session.start, activity: session.activity, focused: Math.round(session.focused), total: Math.round(session.total) };
+}
+
+function setBadge(kind, text) {
+  const b = $("badge"); b.hidden = false; b.className = "badge " + kind; $("badgeText").textContent = text;
+}
+
+async function start() {
+  $("startBtn").disabled = true;
+  try {
+    await loadModels();
+    await startCamera();
+  } catch (err) {
+    $("startBtn").disabled = false; $("loading").textContent = "";
+    if (err && err.name === "NotAllowedError") toast("Camera permission was blocked. Allow camera access for this site in Settings, then try again.");
+    else toast("Couldn't start: " + (err?.message || err));
+    stopCamera(); return;
+  }
+  session = {
+    start: Date.now(), startDate: new Date(), activity: state.activity,
+    focused: 0, total: 0, pending: 0, awaySince: null, eyesSince: null, phoneSince: null,
+    calib: [], base: null, last: performance.now(), lastFace: 0, lastPhone: 0, phoneSeen: false,
+    reason: "", lastSave: 0,
+  };
+  $("startBtn").hidden = true; $("stopBtn").hidden = false; $("startBtn").disabled = false;
+  setBadge("grace", "Calibrating — look at your study material");
+  loop();
+}
+
+function finish() {
+  if (!session) return;
+  cancelAnimationFrame(raf);
+  const rec = liveRecord();
+  session = null; state.live = null;
+  if (rec.focused >= 10) { state.sessions.push(rec); toast(`Saved ${fmtMin(rec.focused)} of focused ${rec.activity.toLowerCase()}. Bravo !`); }
+  else toast("Session was too short to save.");
+  save(); stopCamera();
+  $("badge").hidden = true; $("stopBtn").hidden = true; $("startBtn").hidden = false;
+  $("focusTime").textContent = "0:00"; $("totalTime").textContent = "0:00"; $("focusRate").textContent = "—"; $("reason").textContent = "";
+  renderDash();
+}
+
+function loop() {
+  raf = requestAnimationFrame(loop);
+  const s = session, v = $("video");
+  if (!s || !v.videoWidth) return;
+  const now = performance.now();
+  if (now - s.lastFace < 110) return; // ~9 checks a second
+  let dt = (now - s.last) / 1000; s.last = now; s.lastFace = now;
+  if (dt > 1.5) dt = 0; // app was in background; don't count the gap
+
+  const res = face.detectForVideo(v, now);
+  const lm = res.faceLandmarks?.[0];
+  const T = THRESH[state.strict];
+
+  // phone check about once a second
+  if (state.phoneOn && phoneDet && now - s.lastPhone > 900) {
+    s.lastPhone = now;
+    try { s.phoneSeen = (phoneDet.detectForVideo(v, now).detections || []).length > 0; } catch { s.phoneSeen = false; }
+  } else if (!state.phoneOn) s.phoneSeen = false;
+
+  // calibration: first ~3s with a face
+  if (!s.base) {
+    if (lm) s.calib.push(poseOf(lm));
+    if (s.calib.length >= 25) {
+      const avg = (k) => s.calib.reduce((a, p) => a + p[k], 0) / s.calib.length;
+      s.base = { yaw: avg("yaw"), pitch: avg("pitch") };
+      toast("Calibrated. Bonne étude !");
+    } else { $("reason").textContent = lm ? "Learning your study position…" : "Sit where you'll study so the camera can see your face."; return; }
+  }
+
+  // decide
+  let reason = "";
+  if (!lm) reason = "Can't see you";
+  else {
+    const p = poseOf(lm);
+    const blink = blinkOf(res);
+    if (Math.abs(p.yaw - s.base.yaw) > T.yaw) reason = "Head turned away";
+    else if (s.base.pitch - p.pitch > T.up) reason = "Looking up / away from your work";
+    if (blink > 0.82) { s.eyesSince ??= now; if ((now - s.eyesSince) / 1000 > T.eyes && !reason) reason = "Eyes closed — taking a nap?"; }
+    else s.eyesSince = null;
+  }
+  if (!reason && s.phoneSeen) reason = "Phone in view";
+
+  s.total += dt;
+  if (!reason) {
+    s.focused += dt + s.pending; s.pending = 0; s.awaySince = null;
+    setBadge("focused", "Focused"); $("reason").className = "reason"; $("reason").textContent = `Counting your ${s.activity.toLowerCase()} time.`;
+  } else {
+    s.awaySince ??= now;
+    const away = (now - s.awaySince) / 1000;
+    if (away < GRACE) { s.pending += dt; setBadge("grace", reason); }
+    else { s.pending = 0; setBadge("away", "Paused"); }
+    $("reason").className = away >= GRACE ? "reason warn" : "reason";
+    $("reason").textContent = away >= GRACE ? `Paused: ${reason.toLowerCase()}.` : `${reason}…`;
+  }
+
+  $("focusTime").textContent = fmt(s.focused);
+  $("totalTime").textContent = fmt(s.total);
+  $("focusRate").textContent = s.total > 5 ? Math.round(s.focused / s.total * 100) + "%" : "—";
+
+  if (now - s.lastSave > 10000) { s.lastSave = now; state.live = liveRecord(); save(); renderDash(); }
+}
+
+$("startBtn").onclick = start;
+$("stopBtn").onclick = finish;
+
+// iPad/Safari kills the camera when you switch apps — restart it when you come back
+document.addEventListener("visibilitychange", async () => {
+  if (!session) return;
+  if (document.hidden) { state.live = liveRecord(); save(); }
+  else {
+    session.last = performance.now();
+    const live = stream && stream.getVideoTracks().some(t => t.readyState === "live");
+    if (!live) { try { await startCamera(); } catch { toast("Tap Start again to turn the camera back on."); } }
+  }
+});
+window.addEventListener("pagehide", () => { if (session) { state.live = liveRecord(); save(); } });
+
+renderActs(); renderDash();
+</script>
+</body>
+</html>
