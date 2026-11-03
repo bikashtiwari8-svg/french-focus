@@ -224,7 +224,7 @@
               <button class="btn ghost" id="importBtn">Restore</button>
               <input type="file" id="importFile" accept="application/json" hidden>
             </div>
-            <div class="note">How it decides: the camera pauses the clock if your face is gone, you turn away or look up, your eyes stay closed, or a phone is in view. Looking down at a book is fine. When screen watching is on, every few seconds it reads the text on your screen. Your study websites and pages that are mostly French count as study. YouTube, Netflix, Instagram and similar sites ring the alarm unless what's on screen is French. Pages full of English or other non-French text also ring it, except during "Book work", where only distracting sites count.</div>
+            <div class="note">How it decides: the camera pauses the clock if your face is gone, you turn away or look up, your eyes stay closed, or a phone is in view. Looking down at a book is fine. When screen watching is on, every few seconds it reads the text on your screen. Your study websites and pages that are mostly French count as study. YouTube, Netflix, Instagram and similar sites ring the alarm unless what's on screen is French. Pages full of English or other non-French text also ring it, except during "Book work" and "Speaking", where only distracting sites count. In "Speaking" mode you can look around freely; it watches your lips instead and pauses if you stop talking for a few seconds.</div>
           </div>
         </details>
       </section>
@@ -447,7 +447,7 @@ async function checkScreen() {
     else if (score.ratio >= 0.45 && score.fr >= 4) { verdict = "study"; label = distractHit ? `French content on ${distractHit}` : "French on screen"; }
     else if (distractHit) { verdict = "off"; label = `Distraction: ${distractHit.replace(/\.com|\.ca/, "")}`; }
     else if (score.words < 25) { verdict = "unclear"; label = "Not much text on screen"; }
-    else if (state.activity === "Book work") { verdict = "unclear"; label = "Non-French screen (ignored during book work)"; }
+    else if (state.activity === "Book work" || state.activity === "Speaking") { verdict = "unclear"; label = `Non-French screen (ignored during ${state.activity.toLowerCase()})`; }
     else { verdict = "off"; label = "Not French — off topic"; }
     s.screen = verdict; s.screenLabel = label;
     $("screenLine").className = "screenline " + verdict;
@@ -477,10 +477,24 @@ function stopScreen() {
 // ---------- camera vision ----------
 let vision, face, phoneDet, stream, session = null;
 const THRESH = {
-  relaxed: { yaw: 0.26, up: 0.16, eyes: 8 },
-  normal:  { yaw: 0.20, up: 0.12, eyes: 5 },
-  strict:  { yaw: 0.14, up: 0.08, eyes: 3 },
+  relaxed: { yaw: 0.26, up: 0.16, eyes: 8, quiet: 10 },
+  normal:  { yaw: 0.20, up: 0.12, eyes: 5, quiet: 7 },
+  strict:  { yaw: 0.14, up: 0.08, eyes: 3, quiet: 4 },
 };
+// Lip movement: how much the mouth opens/closes over the last ~2 seconds
+function mouthOf(res) {
+  const cats = res.faceBlendshapes?.[0]?.categories || [];
+  const get = (n) => cats.find(c => c.categoryName === n)?.score ?? 0;
+  return get("jawOpen") + 0.5 * (get("mouthFunnel") + get("mouthPucker")) + 0.3 * (get("mouthLowerDownLeft") + get("mouthLowerDownRight"));
+}
+function isTalking(s, now, lm, res) {
+  if (!lm) return false;
+  s.mouth.push({ t: now, v: mouthOf(res) });
+  while (s.mouth.length && now - s.mouth[0].t > 2000) s.mouth.shift();
+  if (s.mouth.length < 5) return false;
+  const vals = s.mouth.map(m => m.v);
+  return Math.max(...vals) - Math.min(...vals) > 0.12;
+}
 async function loadModels() {
   if (face) return;
   $("loading").textContent = "Loading the focus detector (first time takes a few seconds)…";
@@ -547,6 +561,7 @@ async function start() {
     start: Date.now(), startDate: new Date(), activity: state.activity,
     focused: 0, total: 0, pending: 0, awaySince: null, eyesSince: null, alarms: 0,
     calib: [], base: null, last: performance.now(), lastPhone: 0, phoneSeen: false,
+    mouth: [], lastTalk: performance.now(),
     lastSave: 0, lastScreen: 0, screen: "unclear", screenLabel: "", screenBusy: false, screenBadSince: null,
   };
   $("alarmCount").textContent = "0";
@@ -604,8 +619,14 @@ async function tick() {
 
     // camera verdict
     let reason = "";
+    const speaking = s.activity === "Speaking";
+    const talking = isTalking(s, now, lm, res);
+    if (talking) s.lastTalk = now;
     if (!lm) reason = "Can't see you";
-    else {
+    else if (speaking) {
+      // Speaking mode: looking around is fine, but your lips need to be moving
+      if ((now - s.lastTalk) / 1000 > T.quiet) reason = "Not speaking — keep talking in French";
+    } else {
       const p = poseOf(lm);
       if (Math.abs(p.yaw - s.base.yaw) > T.yaw) reason = "Head turned away";
       else if (s.base.pitch - p.pitch > T.up) reason = "Looking up / away from your work";
@@ -620,7 +641,8 @@ async function tick() {
     if (!reason) {
       s.focused += dt + s.pending; s.pending = 0; s.awaySince = null;
       stopAlarm();
-      setBadge("focused", "Focused"); $("reason").className = "reason"; $("reason").textContent = `Counting your ${s.activity.toLowerCase()} time.`;
+      setBadge("focused", speaking ? (talking ? "Speaking 🗣️" : "Focused") : "Focused");
+      $("reason").className = "reason"; $("reason").textContent = `Counting your ${s.activity.toLowerCase()} time.`;
     } else {
       s.awaySince ??= now;
       const away = (now - s.awaySince) / 1000;
